@@ -2,51 +2,50 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Grup Voice Chat</title>
+<title>Link ile Grup Voice Chat</title>
 <style>
 body { font-family: sans-serif; text-align: center; margin-top: 50px; }
-input, button { padding: 10px; margin: 5px; font-size: 16px; }
+button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 10px; }
 audio { display: block; margin: 10px auto; width: 300px; }
+#link { margin-top: 20px; word-break: break-all; }
 </style>
 </head>
 <body>
 
-<h1>Grup Voice Chat</h1>
-<p>Kendi ID'nizi boş bırakabilirsiniz</p>
-<input id="peerId" placeholder="Kendi ID (Opsiyonel)">
-<p>Oda ID girin:</p>
-<input id="roomId" placeholder="Oda ID">
-<br>
-<button id="joinBtn">Odaya Katıl</button>
-
+<h1>Link ile Grup Voice Chat</h1>
+<button id="joinBtn">Odaya Katıl / Oda Oluştur</button>
+<div id="link"></div>
 <div id="audios"></div>
 
 <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 <script>
 const joinBtn = document.getElementById('joinBtn');
-const peerIdInput = document.getElementById('peerId');
-const roomIdInput = document.getElementById('roomId');
 const audiosDiv = document.getElementById('audios');
+const linkDiv = document.getElementById('link');
 
 let localStream;
 let peer;
 let connections = {};
 
+// URL’den room al
+let urlParams = new URLSearchParams(window.location.search);
+let roomId = urlParams.get('room');
+if (!roomId) roomId = Math.random().toString(36).substring(2, 10); // rastgele oda
+
 async function initPeer() {
   localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-  peer = new Peer(peerIdInput.value || undefined);
+  peer = new Peer(undefined, { debug: 2 });
 
   peer.on('open', id => {
-    alert("Kendi ID'niz: " + id);
+    linkDiv.innerHTML = `Oda linki: <a href="?room=${roomId}" target="_blank">${window.location.origin}?room=${roomId}</a>`;
+
     joinRoom(id);
   });
 
   peer.on('call', incomingCall => {
     incomingCall.answer(localStream);
-    incomingCall.on('stream', remoteStream => {
-      addAudio(remoteStream, incomingCall.peer);
-    });
+    incomingCall.on('stream', remoteStream => addAudio(remoteStream, incomingCall.peer));
   });
 }
 
@@ -60,13 +59,9 @@ function addAudio(stream, peerId) {
 }
 
 function joinRoom(myId) {
-  const roomId = roomIdInput.value.trim();
-  if (!roomId) return alert("Oda ID girin!");
-
-  // Basit: oda ID kullanarak herkesin ID'sini localStorage'da tutuyoruz
-  // (Gerçek uygulamada server gerekir, burada demo amaçlı)
+  // Basit demo için localStorage kullanıyoruz
   let peers = JSON.parse(localStorage.getItem('room-' + roomId) || "[]");
-  
+
   peers.forEach(peerId => {
     const call = peer.call(peerId, localStream);
     call.on('stream', remoteStream => addAudio(remoteStream, peerId));
@@ -79,6 +74,5 @@ function joinRoom(myId) {
 
 joinBtn.onclick = initPeer;
 </script>
-
 </body>
 </html>
