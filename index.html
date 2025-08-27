@@ -1,149 +1,66 @@
 <!DOCTYPE html>
 <html lang="tr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Resmi Ortadan İkiye Böl</title>
-    <style>
-      * {
-        box-sizing: border-box;
-      }
+<head>
+<meta charset="UTF-8">
+<title>Basit Anlık Voice Chat</title>
+<style>
+body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+input, button { padding: 10px; margin: 5px; font-size: 16px; }
+audio { margin-top: 20px; width: 300px; }
+</style>
+</head>
+<body>
 
-      body {
-        font-family: sans-serif;
-        margin: 0;
-        padding: 1rem;
-        background: #f4f4f4;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-      }
+<h1>Basit Anlık Voice Chat</h1>
+<p>Kendi ID'nizi oluşturun veya boş bırakın</p>
+<input id="peerId" placeholder="Kendi ID (Opsiyonel)">
+<p>Bağlanmak istediğiniz kişinin ID'si:</p>
+<input id="remoteId" placeholder="Karşı ID">
+<br>
+<button id="startBtn">Bağlan / Ses Başlat</button>
 
-      h2 {
-        text-align: center;
-        color: #333;
-      }
+<audio id="remoteAudio" autoplay></audio>
 
-      input[type="file"] {
-        padding: 0.5rem;
-        font-size: 1rem;
-      }
+<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+<script>
+const startBtn = document.getElementById('startBtn');
+const remoteAudio = document.getElementById('remoteAudio');
+const peerIdInput = document.getElementById('peerId');
+const remoteIdInput = document.getElementById('remoteId');
 
-      canvas {
-        max-width: 100%;
-        height: auto;
-        border: 1px solid #ccc;
-        margin-top: 1rem;
-      }
+let localStream;
+let peer;
+let call;
 
-      .buttons {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 1rem;
-        margin-top: 1rem;
-      }
+async function initPeer() {
+  localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      button {
-        padding: 0.75rem 1.25rem;
-        font-size: 1rem;
-        border: none;
-        border-radius: 5px;
-        background-color: #007bff;
-        color: white;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-      }
+  peer = new Peer(peerIdInput.value || undefined);
 
-      button:disabled {
-        background-color: #aaa;
-        cursor: not-allowed;
-      }
+  peer.on('open', id => {
+    alert("Kendi ID'niz: " + id + "\nBunu karşı tarafa verin!");
+  });
 
-      button:hover:not(:disabled) {
-        background-color: #0056b3;
-      }
-    </style>
-  </head>
-  <body>
-    <center>
-      <h1>hoşgeldiniz sueda hanım</h1>
-    </center>
-    <h2>Resmi Ortadan İkiye Böl</h2>
-    <input type="file" id="imageInput" accept="image/*" />
-    <canvas id="originalCanvas"></canvas>
+  peer.on('call', incomingCall => {
+    incomingCall.answer(localStream);
+    incomingCall.on('stream', remoteStream => {
+      remoteAudio.srcObject = remoteStream;
+    });
+  });
+}
 
-    <div class="buttons">
-      <button id="downloadLeft" disabled>Sol Yarıyı İndir</button>
-      <button id="downloadRight" disabled>Sağ Yarıyı İndir</button>
-    </div>
+startBtn.onclick = async () => {
+  if (!peer) await initPeer();
 
-    <script>
-      const imageInput = document.getElementById("imageInput")
-      const originalCanvas = document.getElementById("originalCanvas")
-      const ctx = originalCanvas.getContext("2d")
+  const remoteId = remoteIdInput.value.trim();
+  if (!remoteId) return alert("Karşı ID'yi girin!");
 
-      const leftCanvas = document.createElement("canvas")
-      const rightCanvas = document.createElement("canvas")
+  call = peer.call(remoteId, localStream);
+  call.on('stream', remoteStream => {
+    remoteAudio.srcObject = remoteStream;
+  });
+};
+</script>
 
-      imageInput.addEventListener("change", e => {
-        const file = e.target.files[0]
-        if (!file) return
-
-        const img = new Image()
-        img.onload = () => {
-          originalCanvas.width = img.width
-          originalCanvas.height = img.height
-          ctx.drawImage(img, 0, 0)
-
-          const halfWidth = Math.floor(img.width / 2)
-          const height = img.height
-
-          // Sol yarı
-          leftCanvas.width = halfWidth
-          leftCanvas.height = height
-          leftCanvas
-            .getContext("2d")
-            .drawImage(img, 0, 0, halfWidth, height, 0, 0, halfWidth, height)
-
-          // Sağ yarı
-          rightCanvas.width = halfWidth
-          rightCanvas.height = height
-          rightCanvas
-            .getContext("2d")
-            .drawImage(
-              img,
-              halfWidth,
-              0,
-              halfWidth,
-              height,
-              0,
-              0,
-              halfWidth,
-              height
-            )
-
-          document.getElementById("downloadLeft").disabled = false
-          document.getElementById("downloadRight").disabled = false
-        }
-        img.src = URL.createObjectURL(file)
-      })
-
-      function downloadCanvas(canvas, filename) {
-        const link = document.createElement("a")
-        link.download = filename
-        link.href = canvas.toDataURL()
-        link.click()
-      }
-
-      document.getElementById("downloadLeft").addEventListener("click", () => {
-        downloadCanvas(leftCanvas, "sol-yari.png")
-      })
-
-      document.getElementById("downloadRight").addEventListener("click", () => {
-        downloadCanvas(rightCanvas, "sag-yari.png")
-      })
-    </script>
-  </body>
+</body>
 </html>
