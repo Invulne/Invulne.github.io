@@ -2,61 +2,77 @@
 <html lang="tr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Beren Hanım içiiiiiin</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>tost chat 🔥</title>
   <style>
-    :root{ --max-width:900px; --gap:1.25rem; }
-    body{
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      margin:0; padding:2rem; display:flex; justify-content:center; background:#f7fafc; color:#111827;
-    }
-    .container{
-      width:100%; max-width:var(--max-width); background:white; border-radius:12px; box-shadow:0 6px 18px rgba(15,23,42,0.08); padding:1.25rem;
-    }
-
-    header{
-      text-align:center; margin-bottom:var(--gap);
-    }
-    header h1{
-      margin:0; font-size:1.25rem; line-height:1.2;
-    }
-
-    .video-wrapper{
-      position:relative; width:100%;
-      aspect-ratio: 16/9;
-      background:#000; overflow:hidden; border-radius:8px;
-    }
-    .video-wrapper:before{
-      content:''; display:block; padding-top:56.25%;
-      height:0; visibility:hidden;
-    }
-    .video-wrapper > *{
-      position:absolute; top:0; left:0; width:100%; height:100%;
-    }
-
-    video{
-      width:100%; height:100%; object-fit:cover; display:block; background:#000;
-    }
-
-    @media (max-width:420px){
-      body{ padding:1rem; }
-      header h1{ font-size:1.05rem; }
-    }
+    body { font-family: sans-serif; background: #0f1724; color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; }
+    h1 { color: #06b6d4; margin-top: 20px; }
+    #messages { width: 90%; max-width: 600px; height: 60vh; overflow-y: auto; background: rgba(255,255,255,0.05); border-radius: 10px; padding: 10px; margin: 20px 0; }
+    .msg { background: rgba(255,255,255,0.08); padding: 8px 10px; margin: 6px 0; border-radius: 8px; }
+    .me { background: rgba(6,182,212,0.2); text-align: right; }
+    textarea { width: 90%; max-width: 600px; height: 60px; border-radius: 8px; padding: 10px; resize: none; }
+    button { margin-top: 8px; background: #06b6d4; color: #042027; border: none; border-radius: 8px; padding: 10px 20px; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>Beren Hanım içiiiiiin</h1>
-    </header>
+  <h1>🔥 Tost Chat</h1>
+  <div id="messages"></div>
+  <textarea id="msgInput" placeholder="Mesaj yaz... (Enter = Gönder)"></textarea>
+  <button id="sendBtn">Gönder</button>
 
-    <div class="video-wrapper">
-      <video id="localVideo" controls playsinline preload="metadata" poster="">
-        <source src="video.4.mp4" type="video/mp4">
-        Tarayıcınız video etiketini desteklemiyor. Lütfen modern bir tarayıcı kullanın.
-      </video>
-    </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-  </div>
+    // 🔹 senin yapılandırman (tamamlanmış hali)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDag_mCdG-tvvbZ3Dz7bpj9pbjh5teskg8",
+      authDomain: "tost-269b0.firebaseapp.com",
+      databaseURL: "https://tost-269b0-default-rtdb.firebaseio.com",
+      projectId: "tost-269b0",
+      storageBucket: "tost-269b0.firebasestorage.app",
+      messagingSenderId: "882411853999",
+      appId: "1:882411853999:web:8a0eb7a9b12d3df6b2dc5a",
+      measurementId: "G-12KF7R4YME"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const messagesRef = ref(db, "messages");
+
+    const messagesDiv = document.getElementById("messages");
+    const msgInput = document.getElementById("msgInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const username = "Kullanıcı-" + Math.floor(Math.random() * 1000);
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>\"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    msgInput.addEventListener("keydown", e => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    function sendMessage() {
+      const text = msgInput.value.trim();
+      if (!text) return;
+      push(messagesRef, { name: username, text, ts: Date.now() });
+      msgInput.value = "";
+    }
+
+    onChildAdded(messagesRef, snap => {
+      const data = snap.val();
+      const el = document.createElement("div");
+      el.className = "msg";
+      if (data.name === username) el.classList.add("me");
+      el.innerHTML = `<strong>${escapeHtml(data.name)}</strong><br>${escapeHtml(data.text)}`;
+      messagesDiv.appendChild(el);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    });
+  </script>
 </body>
 </html>
