@@ -21,6 +21,9 @@
   <button id="sendBtn">Gönder</button>
 
   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded, get, query, orderByChild } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
     const allowedIP = "78.161.238.24";
 
     fetch("https://api.ipify.org?format=json")
@@ -30,7 +33,7 @@
         if (userIP !== allowedIP) {
           document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:50px;'>You are not my tost</h1>";
         } else {
-          // 🔹 IP eşleşti, chat uygulamasını başlat
+          console.log("Hoşgeldin tost kullanıcısı! Chat aktif.");
           initChat();
         }
       })
@@ -39,9 +42,6 @@
       });
 
     function initChat() {
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-      import { getDatabase, ref, push, onChildAdded, get, query, orderByChild } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
-
       const firebaseConfig = {
         apiKey: "AIzaSyDag_mCdG-tvvbZ3Dz7bpj9pbjh5teskg8",
         authDomain: "tost-269b0.firebaseapp.com",
@@ -105,4 +105,3 @@
   </script>
 </body>
 </html>
-
