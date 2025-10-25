@@ -12,13 +12,29 @@
     .me { background: rgba(6,182,212,0.2); text-align: right; }
     textarea { width: 90%; max-width: 600px; height: 60px; border-radius: 8px; padding: 10px; resize: none; }
     button { margin-top: 8px; background: #06b6d4; color: #042027; border: none; border-radius: 8px; padding: 10px 20px; font-weight: bold; cursor: pointer; }
+
+    /* Doğrulama ekranı stilleri */
+    #authScreen { display: flex; flex-direction: column; align-items: center; margin-top: 50px; }
+    #authScreen input { padding: 10px; border-radius: 8px; border: none; margin-top: 10px; width: 200px; }
+    #authScreen button { margin-top: 10px; }
   </style>
 </head>
 <body>
-  <h1>🔥 Tost Chat</h1>
-  <div id="messages"></div>
-  <textarea id="msgInput" placeholder="Mesaj yaz... (Enter = Gönder)"></textarea>
-  <button id="sendBtn">Gönder</button>
+
+  <!-- Doğrulama ekranı -->
+  <div id="authScreen" style="display:none;">
+    <h1>Doğrulama</h1>
+    <input id="authInput" placeholder="Doğrulama kelimesini girin">
+    <button id="authBtn">Giriş</button>
+  </div>
+
+  <!-- Chat ekranı -->
+  <div id="chatContainer" style="display:none;">
+    <h1>🔥 Tost Chat</h1>
+    <div id="messages"></div>
+    <textarea id="msgInput" placeholder="Mesaj yaz... (Enter = Gönder)"></textarea>
+    <button id="sendBtn">Gönder</button>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
@@ -26,6 +42,12 @@
 
     const allowedIP = "78.161.238.24";
 
+    const authScreen = document.getElementById("authScreen");
+    const authInput = document.getElementById("authInput");
+    const authBtn = document.getElementById("authBtn");
+    const chatContainer = document.getElementById("chatContainer");
+
+    // IP kontrolü
     fetch("https://api.ipify.org?format=json")
       .then(res => res.json())
       .then(data => {
@@ -33,13 +55,23 @@
         if (userIP !== allowedIP) {
           document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:50px;'>You are not my tost</h1>";
         } else {
-          console.log("Hoşgeldin tost kullanıcısı! Chat aktif.");
-          initChat();
+          // IP doğru, doğrulama ekranını göster
+          authScreen.style.display = "flex";
         }
       })
       .catch(err => {
         console.error("IP alınamadı", err);
       });
+
+    authBtn.addEventListener("click", () => {
+      if(authInput.value === "8btost"){
+        authScreen.style.display = "none";
+        chatContainer.style.display = "block";
+        initChat();
+      } else {
+        alert("Yanlış doğrulama kelimesi!");
+      }
+    });
 
     function initChat() {
       const firebaseConfig = {
