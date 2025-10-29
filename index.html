@@ -3,77 +3,271 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>tost chat 🔥</title>
+  <title>Tost Chat — Midnight Edition</title>
   <style>
-    body { font-family: sans-serif; background: #0f1724; color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; }
-    h1 { color: #06b6d4; margin-top: 20px; }
-    #messages { width: 90%; max-width: 600px; height: 60vh; overflow-y: auto; background: rgba(255,255,255,0.05); border-radius: 10px; padding: 10px; margin: 20px 0; }
-    .msg { background: rgba(255,255,255,0.08); padding: 8px 10px; margin: 6px 0; border-radius: 8px; }
-    .me { background: rgba(6,182,212,0.2); text-align: right; }
-    textarea { width: 90%; max-width: 600px; height: 60px; border-radius: 8px; padding: 10px; resize: none; }
-    button { margin-top: 8px; background: #06b6d4; color: #042027; border: none; border-radius: 8px; padding: 10px 20px; font-weight: bold; cursor: pointer; }
+    :root{
+      --bg-1: #0b0610; /* çok koyu zemin */
+      --bg-2: #0f0916; /* gradient ikinci */
+      --card: rgba(255,255,255,0.04);
+      --glass: rgba(255,255,255,0.03);
+      --accent-start: #6b2aa3; /* mor tonları */
+      --accent-end: #2f1b4d;
+      --bubble-me: linear-gradient(135deg,#7b3fb3aa,#5a2f8aaa);
+      --bubble-other: rgba(255,255,255,0.05);
+      --text: #e8e6ee;
+      --muted: #a79fb0;
+      --green: #6ee7b7;
+      --radius: 14px;
+    }
 
-    /* Doğrulama ekranı stilleri */
-    #authScreen { display: flex; flex-direction: column; align-items: center; margin-top: 50px; }
-    #authScreen input { padding: 10px; border-radius: 8px; border: none; margin-top: 10px; width: 200px; }
-    #authScreen button { margin-top: 10px; }
+    html,body{height:100%;margin:0;background: linear-gradient(180deg,var(--bg-1),var(--bg-2));font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial; color:var(--text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+
+    /* Centering wrapper */
+    .app {
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      box-sizing:border-box;
+    }
+
+    /* Card */
+    .shell {
+      width:100%;
+      max-width:1100px;
+      height:90vh;
+      border-radius:18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      display:grid;
+      grid-template-columns: 340px 1fr;
+      overflow:hidden;
+      backdrop-filter: blur(8px) saturate(120%);
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+
+    /* Left sidebar (contacts / auth) */
+    .sidebar {
+      padding:18px;
+      background: linear-gradient(180deg, rgba(127,82,255,0.04), rgba(0,0,0,0.02));
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    .brand {
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .logo {
+      width:46px;height:46px;border-radius:10px;
+      background: linear-gradient(135deg,var(--accent-start),var(--accent-end));
+      display:flex;align-items:center;justify-content:center;font-weight:700;
+      color:white;font-size:18px;box-shadow: 0 6px 18px rgba(79, 35, 150, 0.25);
+    }
+    .brand h2 { margin:0;font-size:16px;letter-spacing:0.2px; }
+    .brand p { margin:0;font-size:12px;color:var(--muted); }
+
+    /* Auth card */
+    .auth {
+      margin-top:6px;
+      padding:16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.02);
+      display:flex;flex-direction:column;gap:10px;
+    }
+    .auth label { font-size:13px;color:var(--muted); }
+    .auth input {
+      padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);
+      background: rgba(0,0,0,0.15); color:var(--text); outline:none;
+      font-size:14px;
+    }
+    .auth .btn {
+      margin-top:6px;padding:10px;border-radius:10px;border:none;
+      background: linear-gradient(90deg,var(--accent-start),var(--accent-end));
+      color:white;font-weight:600; cursor:pointer; box-shadow: 0 8px 20px rgba(107, 42, 163, 0.18);
+    }
+
+    .auth .hint { font-size:12px;color:var(--muted);margin-top:6px; }
+
+    /* Right (chat area) */
+    .chat {
+      display:flex;flex-direction:column;
+      padding:18px; gap:14px;
+    }
+
+    .topbar {
+      display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+      border:1px solid rgba(255,255,255,0.02);
+    }
+    .top-profile {
+      display:flex;align-items:center;gap:10px;
+    }
+    .avatar {
+      width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#8b3fb8,#4c2a74);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;
+    }
+    .top-profile .meta {line-height:1;}
+    .top-profile .meta .name {font-weight:600;}
+    .top-profile .meta .subtitle {font-size:12px;color:var(--muted);}
+
+    .messages {
+      flex:1; overflow:auto; padding:18px; display:flex;flex-direction:column; gap:10px;
+      background-image: radial-gradient(circle at 10% 10%, rgba(255,255,255,0.01), transparent 10%), radial-gradient(circle at 90% 90%, rgba(255,255,255,0.01), transparent 10%);
+      border-radius:10px;
+    }
+
+    /* message bubbles */
+    .msg-row { display:flex; gap:10px; align-items:flex-end; max-width:75%; }
+    .msg-row.me { margin-left:auto; justify-content:flex-end; }
+    .bubble {
+      padding:10px 12px; border-radius:12px; font-size:14px; line-height:1.3; position:relative;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+    }
+    .bubble .meta { display:block; font-size:11px; color:var(--muted); margin-top:6px; text-align:right; }
+    .bubble.other { background:var(--bubble-other); color:var(--text); border:1px solid rgba(255,255,255,0.02); border-top-left-radius:4px; }
+    .bubble.me { background:var(--bubble-me); color:white; border:1px solid rgba(255,255,255,0.04); border-top-right-radius:4px; }
+
+    .avatar-sm { width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6f2fb1,#3d234e);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:13px; }
+
+    .input-area {
+      display:flex; gap:10px; align-items:center; padding:12px; border-radius:12px; background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); border:1px solid rgba(255,255,255,0.02);
+    }
+
+    .input-area textarea {
+      min-height:48px; max-height:120px; resize:none; flex:1; padding:12px;border-radius:10px;border:none;background:transparent;color:var(--text);outline:none;font-size:14px;
+    }
+    .send-btn {
+      padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(90deg,#9a46d4,#5d2fb0);color:white;font-weight:700;cursor:pointer;
+    }
+
+    /* timestamp small */
+    .time {font-size:11px;color:var(--muted);margin-left:8px;}
+
+    /* Responsive */
+    @media (max-width:900px) {
+      .shell { grid-template-columns: 1fr; height:100vh; border-radius:0; max-width:100%; }
+      .sidebar { display:none; }
+      .chat { padding:12px; }
+      .messages { padding:12px; }
+      .brand { display:none; }
+    }
+
+    /* small niceties */
+    .muted { color:var(--muted); font-size:13px; }
+    .empty { text-align:center; color:var(--muted); margin-top:30px; }
+    /* subtle appear animation */
+    .bubble { transform-origin: bottom right; animation: pop .18s ease; }
+    @keyframes pop { from { transform: scale(.98); opacity:0; } to { transform: scale(1); opacity:1; } }
   </style>
 </head>
 <body>
+  <div class="app">
+    <div class="shell">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="brand">
+          <div class="logo">TØ</div>
+          <div>
+            <h2>Tost Chat</h2>
+            <p>Midnight Edition</p>
+          </div>
+        </div>
 
-  <!-- Doğrulama ekranı -->
-  <div id="authScreen" style="display:none;">
-    <h1>Doğrulama</h1>
-    <input id="authInput" placeholder="Doğrulama kelimesini girin">
-    <button id="authBtn">Giriş</button>
-  </div>
+        <div class="auth">
+          <label for="authInput">Sisteme giriş için doğrulama kelimesini gir</label>
+          <input id="authInput" placeholder="Doğrulama kelimesi" autocomplete="off" />
+          <button id="authBtn" class="btn">Giriş</button>
+          <div class="hint">Doğru kelimeyi girmezsen sohbet açılamaz.</div>
+        </div>
 
-  <!-- Chat ekranı -->
-  <div id="chatContainer" style="display:none;">
-    <h1>🔥 Tost Chat</h1>
-    <div id="messages"></div>
-    <textarea id="msgInput" placeholder="Mesaj yaz... (Enter = Gönder)"></textarea>
-    <button id="sendBtn">Gönder</button>
+        <div style="margin-top:auto;font-size:13px;color:var(--muted);">
+          <div>Made with ❤️ — Tost Team</div>
+        </div>
+      </div>
+
+      <!-- Chat area -->
+      <div class="chat">
+        <div class="topbar">
+          <div class="top-profile">
+            <div class="avatar" id="topAvatar">T</div>
+            <div class="meta">
+              <div class="name" id="topName">Tost Chat</div>
+              <div class="subtitle">Anlık, güvenli değil — test amaçlı</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="messages" id="messages">
+          <div class="empty" id="emptyHint">Sohbete başlamak için doğrulama yap ve mesaj yaz.</div>
+        </div>
+
+        <div class="input-area" id="inputArea" style="display:none;">
+          <textarea id="msgInput" placeholder="Mesaj yaz... (Enter = Gönder)"></textarea>
+          <button class="send-btn" id="sendBtn">Gönder</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script type="module">
+    // Firebase imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, get, query, orderByChild } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+    import { getDatabase, ref, push, onChildAdded, query, orderByChild } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-    const allowedIP = "78.161.238.24";
+    // ---------- UI elements ----------
+    const authInput = document.getElementById('authInput');
+    const authBtn = document.getElementById('authBtn');
+    const messagesEl = document.getElementById('messages');
+    const inputArea = document.getElementById('inputArea');
+    const msgInput = document.getElementById('msgInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const topAvatar = document.getElementById('topAvatar');
+    const topName = document.getElementById('topName');
+    const emptyHint = document.getElementById('emptyHint');
 
-    const authScreen = document.getElementById("authScreen");
-    const authInput = document.getElementById("authInput");
-    const authBtn = document.getElementById("authBtn");
-    const chatContainer = document.getElementById("chatContainer");
+    const SECRET = "8btost";
 
-    // IP kontrolü
-    fetch("https://api.ipify.org?format=json")
-      .then(res => res.json())
-      .then(data => {
-        const userIP = data.ip;
-        if (userIP !== allowedIP) {
-          document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:50px;'>You are not my tost</h1>";
-        } else {
-          // IP doğru, doğrulama ekranını göster
-          authScreen.style.display = "flex";
-        }
-      })
-      .catch(err => {
-        console.error("IP alınamadı", err);
-      });
+    // small util: escape HTML to prevent XSS
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
 
-    authBtn.addEventListener("click", () => {
-      if(authInput.value === "8btost"){
-        authScreen.style.display = "none";
-        chatContainer.style.display = "block";
+    // generate username and avatar color from name
+    const USERNAME = "Kullanıcı-" + Math.floor(Math.random()*9000 + 100);
+    function avatarLetter(name){ return String(name||'U').trim().charAt(0).toUpperCase(); }
+
+    // Set topbar avatar & name dynamically
+    topAvatar.textContent = avatarLetter(USERNAME);
+    topName.textContent = USERNAME;
+
+    // ------------ Auth flow ------------
+    authBtn.addEventListener('click', () => {
+      if (authInput.value.trim() === SECRET) {
+        // hide auth area (sidebar remains but we can remove input)
+        document.querySelector('.auth').style.display = 'none';
+        // show input area and initialize chat
+        inputArea.style.display = 'flex';
+        emptyHint.style.display = 'none';
         initChat();
       } else {
-        alert("Yanlış doğrulama kelimesi!");
+        // subtle shake + alert
+        authInput.animate([{ transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }], { duration: 280 });
+        alert('Yanlış doğrulama kelimesi!');
       }
     });
 
-    function initChat() {
+    // allow Enter to submit auth
+    authInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') authBtn.click();
+    });
+
+    // ------------ Firebase chat ------------
+    function initChat(){
       const firebaseConfig = {
         apiKey: "AIzaSyDag_mCdG-tvvbZ3Dz7bpj9pbjh5teskg8",
         authDomain: "tost-269b0.firebaseapp.com",
@@ -87,53 +281,107 @@
 
       const app = initializeApp(firebaseConfig);
       const db = getDatabase(app);
-      const messagesRef = ref(db, "messages");
+      const messagesRef = ref(db, 'messages');
 
-      const messagesDiv = document.getElementById("messages");
-      const msgInput = document.getElementById("msgInput");
-      const sendBtn = document.getElementById("sendBtn");
-      const username = "Kullanıcı-" + Math.floor(Math.random() * 1000);
+      // Use query ordered by ts so onChildAdded gives items in time order
+      const ordered = query(messagesRef, orderByChild('ts'));
 
-      function escapeHtml(s) {
-        return s.replace(/[&<>\"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
-      }
+      // Listen for all existing + new messages
+      onChildAdded(ordered, snap => {
+        const data = snap.val();
+        addMessageToDOM(data);
+      });
 
-      function addMessageToDOM(data) {
-        const el = document.createElement("div");
-        el.className = "msg";
-        if (data.name === username) el.classList.add("me");
-        el.innerHTML = `<strong>${escapeHtml(data.name)}</strong><br>${escapeHtml(data.text)}`;
-        messagesDiv.appendChild(el);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-      }
-
-      sendBtn.addEventListener("click", sendMessage);
-      msgInput.addEventListener("keydown", e => {
-        if (e.key === "Enter" && !e.shiftKey) {
+      // send message
+      sendBtn.addEventListener('click', sendMessage);
+      msgInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
           sendMessage();
         }
       });
 
-      function sendMessage() {
+      function sendMessage(){
         const text = msgInput.value.trim();
         if (!text) return;
-        push(messagesRef, { name: username, text, ts: Date.now() });
-        msgInput.value = "";
+        push(messagesRef, { name: USERNAME, text, ts: Date.now() });
+        msgInput.value = '';
+      }
+    }
+
+    // ------------ DOM helper to add message ------------
+    function addMessageToDOM(data){
+      if (!data || !data.text) return;
+      // Remove empty hint if present
+      if (emptyHint) emptyHint.style.display = 'none';
+
+      const isMe = data.name === USERNAME;
+      const row = document.createElement('div');
+      row.className = 'msg-row' + (isMe ? ' me' : '');
+
+      // avatar for other side
+      if (!isMe) {
+        const av = document.createElement('div');
+        av.className = 'avatar-sm';
+        av.textContent = avatarLetter(data.name);
+        row.appendChild(av);
       }
 
-      // Eski mesajları yükle
-      get(query(messagesRef, orderByChild("ts"))).then(snapshot => {
-        snapshot.forEach(snap => {
-          addMessageToDOM(snap.val());
-        });
-      });
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble ' + (isMe ? 'me' : 'other');
 
-      // Yeni mesajları dinle
-      onChildAdded(messagesRef, snap => {
-        addMessageToDOM(snap.val());
-      });
+      // content
+      const nameEl = document.createElement('div');
+      nameEl.style.fontSize = '12px';
+      nameEl.style.marginBottom = '6px';
+      nameEl.style.color = 'var(--muted)';
+      nameEl.textContent = isMe ? 'Sen' : (data.name || 'Anonim');
+
+      const textEl = document.createElement('div');
+      textEl.innerHTML = escapeHtml(data.text).replace(/\n/g, '<br>');
+
+      const timeEl = document.createElement('div');
+      timeEl.className = 'meta';
+      timeEl.textContent = formatTime(data.ts);
+
+      bubble.appendChild(nameEl);
+      bubble.appendChild(textEl);
+      bubble.appendChild(timeEl);
+
+      row.appendChild(bubble);
+
+      // for my messages, optionally show a small "tick" or space for avatar
+      if (isMe) {
+        // add a tiny spacer to keep alignment consistent
+        const spacer = document.createElement('div');
+        spacer.style.width = '36px';
+        row.appendChild(spacer);
+      }
+
+      messagesEl.appendChild(row);
+      // auto scroll
+      messagesEl.scrollTop = messagesEl.scrollHeight;
     }
+
+    // time formatter
+    function formatTime(ts){
+      if (!ts) return '';
+      const d = new Date(ts);
+      const now = new Date();
+      const sameDay = d.toDateString() === now.toDateString();
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      if (sameDay) return `${hh}:${mm}`;
+      // show day.month hour:minute for older
+      const dd = String(d.getDate()).padStart(2,'0');
+      const mo = String(d.getMonth()+1).padStart(2,'0');
+      return `${dd}.${mo} ${hh}:${mm}`;
+    }
+
+    // small UX: focus input after auth
+    authBtn.addEventListener('click', () => {
+      setTimeout(()=> msgInput.focus(), 300);
+    });
   </script>
 </body>
 </html>
