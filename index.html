@@ -2,11 +2,11 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Almanca Okuma – Free API</title>
+<title>Almanca Akıllı Okuma</title>
 <style>
   body {
-    font-family: Arial;
-    padding: 30px;
+    font-family: Arial, sans-serif;
+    padding: 25px;
   }
 
   textarea {
@@ -15,61 +15,87 @@
     font-size: 16px;
   }
 
+  button {
+    margin-top: 10px;
+    padding: 8px 14px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
   .text {
-    margin-top: 20px;
+    margin-top: 25px;
     font-size: 18px;
-    line-height: 1.8;
+    line-height: 1.9;
   }
 
   .word {
     cursor: pointer;
-    position: relative;
     padding: 2px 4px;
+    border-radius: 4px;
   }
 
   .word:hover {
     background: #e6f2ff;
   }
 
-  .tooltip {
-    display: none;
+  /* Mini kart */
+  .card {
     position: absolute;
-    bottom: 140%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: black;
-    color: white;
-    padding: 6px 8px;
-    border-radius: 6px;
-    font-size: 14px;
-    white-space: nowrap;
-    z-index: 10;
-  }
-
-  .word.active .tooltip {
-    display: block;
+    background: #fff;
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    font-size: 15px;
+    z-index: 1000;
+    max-width: 220px;
   }
 </style>
 </head>
 <body>
 
-<h2>Almanca Metni Yapıştır</h2>
+<h2>🇩🇪 Almanca Metni Yapıştır</h2>
 
 <textarea id="inputText">
-Der Mann liest ein Buch und ist glücklich.
-</textarea>
-<br><br>
+Der Mann liest ein Buch. Die Bücher sind interessant.
+</textarea><br>
 <button onclick="processText()">Metni Hazırla</button>
 
 <div class="text" id="output"></div>
 
 <script>
-async function translateWord(word) {
+/* =======================
+   CACHE
+======================= */
+const cache = {};
+
+/* =======================
+   NORMALIZE (basit ama işe yarar)
+======================= */
+function normalize(word) {
+  word = word.toLowerCase();
+
+  const exceptions = {
+    liest: "lesen",
+    bücher: "buch",
+    war: "sein",
+    ging: "gehen"
+  };
+
+  if (exceptions[word]) return exceptions[word];
+
+  return word
+    .replace(/(ern|en|er|e|n|s)$/,"");
+}
+
+/* =======================
+   TRANSLATE (FREE API)
+======================= */
+async function translate(word) {
+  if (cache[word]) return cache[word];
+
   const res = await fetch("https://libretranslate.de/translate", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       q: word,
       source: "de",
@@ -79,9 +105,36 @@ async function translateWord(word) {
   });
 
   const data = await res.json();
-  return data.translatedText || "Çeviri yok";
+  const result = data.translatedText || "Çeviri yok";
+
+  cache[word] = result;
+  return result;
 }
 
+/* =======================
+   UI
+======================= */
+let activeCard = null;
+
+function showCard(target, text) {
+  if (activeCard) activeCard.remove();
+
+  const rect = target.getBoundingClientRect();
+  const card = document.createElement("div");
+  card.className = "card";
+  card.textContent = text;
+
+  document.body.appendChild(card);
+
+  card.style.top = rect.bottom + window.scrollY + 8 + "px";
+  card.style.left = rect.left + window.scrollX + "px";
+
+  activeCard = card;
+}
+
+/* =======================
+   PROCESS TEXT
+======================= */
 function processText() {
   const text = inputText.value;
   output.innerHTML = "";
@@ -96,29 +149,25 @@ function processText() {
       span.className = "word";
       span.textContent = part;
 
-      const tooltip = document.createElement("span");
-      tooltip.className = "tooltip";
-      tooltip.textContent = "Yükleniyor...";
-
-      span.appendChild(tooltip);
-
       span.onclick = async () => {
-        document.querySelectorAll(".word").forEach(w => {
-          if (w !== span) w.classList.remove("active");
-        });
-
-        span.classList.toggle("active");
-
-        if (!tooltip.dataset.loaded) {
-          tooltip.textContent = await translateWord(part);
-          tooltip.dataset.loaded = "true";
-        }
+        const clean = normalize(part);
+        showCard(span, "Yükleniyor...");
+        const meaning = await translate(clean);
+        showCard(span, `${clean} → ${meaning}`);
       };
 
       output.append(span);
     }
   });
 }
+
+/* Kart dışına tıklayınca kapansın */
+document.addEventListener("click", e => {
+  if (!e.target.classList.contains("word") && activeCard) {
+    activeCard.remove();
+    activeCard = null;
+  }
+});
 </script>
 
 </body>
