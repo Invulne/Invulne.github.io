@@ -1,1 +1,125 @@
-https://dosya.co/aachjfcrllis/Duolingo_v6.53.3_MOD.apk.html
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Almanca Okuma – Free API</title>
+<style>
+  body {
+    font-family: Arial;
+    padding: 30px;
+  }
+
+  textarea {
+    width: 100%;
+    height: 120px;
+    font-size: 16px;
+  }
+
+  .text {
+    margin-top: 20px;
+    font-size: 18px;
+    line-height: 1.8;
+  }
+
+  .word {
+    cursor: pointer;
+    position: relative;
+    padding: 2px 4px;
+  }
+
+  .word:hover {
+    background: #e6f2ff;
+  }
+
+  .tooltip {
+    display: none;
+    position: absolute;
+    bottom: 140%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: black;
+    color: white;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 14px;
+    white-space: nowrap;
+    z-index: 10;
+  }
+
+  .word.active .tooltip {
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<h2>Almanca Metni Yapıştır</h2>
+
+<textarea id="inputText">
+Der Mann liest ein Buch und ist glücklich.
+</textarea>
+<br><br>
+<button onclick="processText()">Metni Hazırla</button>
+
+<div class="text" id="output"></div>
+
+<script>
+async function translateWord(word) {
+  const res = await fetch("https://libretranslate.de/translate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      q: word,
+      source: "de",
+      target: "tr",
+      format: "text"
+    })
+  });
+
+  const data = await res.json();
+  return data.translatedText || "Çeviri yok";
+}
+
+function processText() {
+  const text = inputText.value;
+  output.innerHTML = "";
+
+  const parts = text.split(/(\s+|[.,!?])/);
+
+  parts.forEach(part => {
+    if (part.trim() === "" || /[.,!?]/.test(part)) {
+      output.append(part);
+    } else {
+      const span = document.createElement("span");
+      span.className = "word";
+      span.textContent = part;
+
+      const tooltip = document.createElement("span");
+      tooltip.className = "tooltip";
+      tooltip.textContent = "Yükleniyor...";
+
+      span.appendChild(tooltip);
+
+      span.onclick = async () => {
+        document.querySelectorAll(".word").forEach(w => {
+          if (w !== span) w.classList.remove("active");
+        });
+
+        span.classList.toggle("active");
+
+        if (!tooltip.dataset.loaded) {
+          tooltip.textContent = await translateWord(part);
+          tooltip.dataset.loaded = "true";
+        }
+      };
+
+      output.append(span);
+    }
+  });
+}
+</script>
+
+</body>
+</html>
